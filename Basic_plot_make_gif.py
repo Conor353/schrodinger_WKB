@@ -1,6 +1,8 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy.special as sp
+import matplotlib.pyplot as plt
+from PIL import Image
+
 
 # Create linearly spaced numbers
 x_range = 3
@@ -50,16 +52,40 @@ y_wkb_values = wkb(epsilon=epsilon, omega=x)
 # Calculate the relative error
 rel_error = (y_wkb_values - y_exact_values) / y_exact_values
 
-# Configure the plot
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-plt.xlim([0, x_range])
-plt.ylim([-2, 2])
 
-# Plot the exact and WKB solutions
-plt.plot(x, y_exact_values, 'black', label=f'Exact solution with epsilon = {epsilon}')
-plt.plot(x, y_wkb_values, 'blue', label=f'WKB solution with epsilon = {epsilon}')
+# Create a list to store frames
+frames = []
 
-# Add legend and display the plot
-plt.legend(loc='upper left')
-plt.show()
+# Define the range and step size for epsilon
+epsilon_range = np.linspace(2, 0.01, 50)
+
+# Loop through epsilon values
+for epsilon in epsilon_range:
+    # Calculate exact and WKB solutions
+    y_exact_values = y_exact(omega=x, epsilon=epsilon)
+    y_wkb_values = wkb(epsilon=epsilon, omega=x)
+
+    # Plot the exact and WKB solutions
+    plt.plot(x, y_exact_values, 'black', label=f'Exact solution with epsilon = {epsilon:.2f}')
+    plt.plot(x, y_wkb_values, 'blue', label=f'WKB solution with epsilon = {epsilon:.2f}')
+
+    # Set the plot limits
+    plt.xlim([0, x_range])
+    plt.ylim([-2, 2])
+
+    # Add legend
+    plt.legend(loc='upper left')
+
+    # Draw the canvas and convert it to a PIL image
+    plt.draw()
+    plt.pause(0.1)
+    image = Image.frombytes('RGB', plt.gcf().canvas.get_width_height(), plt.gcf().canvas.tostring_rgb())
+    frames.append(image)
+
+    # Clear the plot for the next frame
+    plt.clf()
+
+# Save the frames as a GIF
+frames[0].save('epsilon_variation.gif', save_all=True, append_images=frames[1:], duration=100, loop=0)
+
+plt.close()
